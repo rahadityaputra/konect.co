@@ -58,7 +58,6 @@ export function Sidebar() {
           <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground">
             K
           </div>
-          <span>Admin</span>
         </Link>
       </div>
 

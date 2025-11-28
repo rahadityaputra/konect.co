@@ -5,15 +5,16 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, Trash2, Copy } from "lucide-react"
+import { ShareTeamButton } from "@/components/share-team-button"
+import { ArrowLeft, Trash2 } from "lucide-react"
 
 export default async function TeamDetailPage({
   params,
 }: {
   params: { id: string }
 }) {
-  const {id} = await params;
-  
+  const { id } = await params;
+
   const supabase = await createClient()
   const {
     data: { user },
@@ -23,14 +24,13 @@ export default async function TeamDetailPage({
     redirect("/auth/login")
   }
 
-
   const { data: team } = await supabase.from("teams").select("*").eq("id", id).single()
 
   if (!team) {
     redirect("/dashboard/teams")
   }
 
-  const { data: members } = await supabase.from("team_members").select("*, profiles(*)").eq("team_id", params.id)
+  const { data: members } = await supabase.from("team_members").select("*, profiles(*)").eq("team_id", id)
 
   const isLeader = team.leader_id === user.id
 
@@ -133,12 +133,9 @@ export default async function TeamDetailPage({
               {isLeader ? (
                 <>
                   <Button asChild className="w-full">
-                    <Link href={`/dashboard/team-finder?team=${params.id}`}>Cari Anggota</Link>
+                    <Link href={`/dashboard/team-finder?team=${id}`}>Cari Anggota</Link>
                   </Button>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    <Copy className="w-4 h-4 mr-2" />
-                    Bagikan Tautan
-                  </Button>
+                  <ShareTeamButton teamId={id} />
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">Anda adalah anggota tim</p>

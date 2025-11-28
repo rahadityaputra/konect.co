@@ -21,7 +21,7 @@ export function Header({ user, profile }: HeaderProps) {
 
   return (
     <header className="border-b border-border bg-background h-16 flex items-center justify-between px-6">
-      <div className="text-xl font-semibold">Panel Admin</div>
+      <div className="text-xl font-semibold"></div>
 
       <div className="flex items-center gap-4">
         <button className="relative p-2 hover:bg-muted rounded-lg transition-colors">
@@ -38,13 +38,27 @@ export function Header({ user, profile }: HeaderProps) {
               </Avatar>
               <div className="hidden sm:block">
                 <div className="text-sm font-medium">{profile?.full_name || user.email}</div>
-                <div className="text-xs text-muted-foreground">Admin</div>
               </div>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+             <DropdownMenuItem asChild>
+              <Link href="/dashboard/profile">Profile</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/admin/settings">Pengaturan</Link>
+              <Link href="/dashboard/teams">Team</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/projects">Proyek</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/competitions">Kompetisi</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboatd/friends">Teman</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="dashboard/settings">Pengaturan</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
