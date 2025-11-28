@@ -47,7 +47,7 @@ export default async function AdminCompetitionsPage() {
             Buat Kompetisi
           </Link>
         </Button>
-      </div>
+      </div> 
 
       <Card>
         <CardHeader>

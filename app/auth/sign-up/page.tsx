@@ -29,7 +29,7 @@ export default function SignUpPage() {
     if (password !== repeatPassword) {
       setError("Password tidak cocok")
       setIsLoading(false)
-      return
+      return 
     }
 
     try {
