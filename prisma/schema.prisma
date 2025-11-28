@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User profiles table
+model Profile {
+  id         String   @id @db.Uuid
+  email      String
+  fullName   String?  @map("full_name")
+  avatarUrl  String?  @map("avatar_url")
+  role       Role     @default(USER)
+  bio        String?
+  skills     String[] @default([])
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  createdCompetitions Competition[] @relation("CompetitionCreator")
+  projects            Project[]
+  ledTeams            Team[]        @relation("TeamLeader")
+  teamMemberships     TeamMember[]
+  notifications       Notification[]
+
+  @@map("profiles")
+}
+
+// Competitions table
+model Competition {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  description String?
+  category    String
+  deadline    DateTime          @db.Timestamptz(6)
+  maxTeamSize Int?              @default(5) @map("max_team_size")
+  location    String?
+  prizePool   String?           @map("prize_pool")
+  imageUrl    String?           @map("image_url")
+  createdBy   String            @map("created_by") @db.Uuid
+  status      CompetitionStatus @default(OPEN)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  creator Profile @relation("CompetitionCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  teams   Team[]
+
+  @@map("competitions")
+}
+
+// Projects table (user-created projects)
+model Project {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  description String?
+  category    String?
+  imageUrl    String?       @map("image_url")
+  userId      String        @map("user_id") @db.Uuid
+  status      ProjectStatus @default(IDEA)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  user  Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teams Team[]
+
+  @@map("projects")
+}
+
+// Teams table
+model Team {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  description   String?
+  projectId     String?    @map("project_id") @db.Uuid
+  competitionId String?    @map("competition_id") @db.Uuid
+  leaderId      String     @map("leader_id") @db.Uuid
+  maxMembers    Int?       @default(5) @map("max_members")
+  imageUrl      String?    @map("image_url")
+  status        TeamStatus @default(OPEN)
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  competition Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  leader      Profile      @relation("TeamLeader", fields: [leaderId], references: [id], onDelete: Cascade)
+  members     TeamMember[]
+
+  @@map("teams")
+}
+
+// Team members table
+model TeamMember {
+  id       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teamId   String         @map("team_id") @db.Uuid
+  userId   String         @map("user_id") @db.Uuid
+  role     TeamMemberRole @default(MEMBER)
+  joinedAt DateTime       @default(now()) @map("joined_at") @db.Timestamptz(6)
+
+  // Relations
+  team Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+// Notifications table
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String
+  title     String
+  message   String?
+  relatedId String?  @map("related_id") @db.Uuid
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Enums
+enum Role {
+  USER  @map("user")
+  ADMIN @map("admin")
+
+  @@map("role")
+}
+
+enum CompetitionStatus {
+  OPEN      @map("open")
+  ONGOING   @map("ongoing")
+  CLOSED    @map("closed")
+  COMPLETED @map("completed")
+
+  @@map("competition_status")
+}
+
+enum ProjectStatus {
+  IDEA        @map("idea")
+  IN_PROGRESS @map("in_progress")
+  COMPLETED   @map("completed")
+
+  @@map("project_status")
+}
+
+enum TeamStatus {
+  OPEN      @map("open")
+  CLOSED    @map("closed")
+  COMPLETED @map("completed")
+
+  @@map("team_status")
+}
+
+enum TeamMemberRole {
+  LEADER @map("leader")
+  MEMBER @map("member")
+
+  @@map("team_member_role")
+}

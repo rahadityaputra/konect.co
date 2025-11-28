@@ -90,8 +90,8 @@ export default function CreateTeamPage() {
           description: formData.description,
           leader_id: user.id,
           max_members: Number.parseInt(formData.max_members),
-          competition_id: formData.competition_id || null,
-          project_id: formData.project_id || null,
+          competition_id: formData.competition_id === "default_competition_id" ? null : formData.competition_id,
+          project_id: formData.project_id === "default_project_id" ? null : formData.project_id,
           status: "open",
         })
         .select()
@@ -110,6 +110,7 @@ export default function CreateTeamPage() {
 
       router.push(`/dashboard/teams/${team.id}`)
     } catch (error: unknown) {
+      console.log(error);
       setError(error instanceof Error ? error.message : "Terjadi kesalahan")
     } finally {
       setIsLoading(false)

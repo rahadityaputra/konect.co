@@ -33,6 +33,8 @@ export default function SignUpPage() {
     }
 
     try {
+      console.log("mencoba untuk mendaftar pengguna baru");
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -43,9 +45,13 @@ export default function SignUpPage() {
           },
         },
       })
-      if (error) throw error
+      if (error) {
+        console.log(error.code + ": " + error.message);
+        throw error;
+      }
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
+      console.log(error);
       setError(error instanceof Error ? error.message : "Terjadi kesalahan")
     } finally {
       setIsLoading(false)

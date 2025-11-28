@@ -12,6 +12,8 @@ export default async function TeamDetailPage({
 }: {
   params: { id: string }
 }) {
+  const {id} = await params;
+  
   const supabase = await createClient()
   const {
     data: { user },
@@ -21,7 +23,8 @@ export default async function TeamDetailPage({
     redirect("/auth/login")
   }
 
-  const { data: team } = await supabase.from("teams").select("*").eq("id", params.id).single()
+
+  const { data: team } = await supabase.from("teams").select("*").eq("id", id).single()
 
   if (!team) {
     redirect("/dashboard/teams")
