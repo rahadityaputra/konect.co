@@ -5,7 +5,8 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Mail, Calendar, MapPin, Edit } from "lucide-react"
+import { UniversityDisplay } from "@/components/university-display"
+import { User, Mail, Calendar, MapPin, Edit, GraduationCap } from "lucide-react"
 
 export default async function ProfilePage() {
     const supabase = await createClient()
@@ -17,18 +18,26 @@ export default async function ProfilePage() {
         redirect("/auth/login")
     }
 
+
+    
+    
     const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
+    
     const { data: myTeams } = await supabase
-        .from("team_members")
-        .select("teams(*)")
-        .eq("user_id", user.id)
-
+    .from("team_members")
+    .select("teams(*)")
+    .eq("user_id", user.id)
+    
     const { data: myProjects } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
+    .from("projects")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    
+    const res = await fetch(`http://localhost:5000/api/v1/universities/${profile?.university_id}`)
+    const universityData = await res.json()
+    console.log(universityData);
+    const universityName = universityData.nama || "Tidak Diketahui"
 
     return (
         <div className="p-6 space-y-6">
@@ -75,6 +84,16 @@ export default async function ProfilePage() {
                                             <div className="flex items-center gap-2 mt-1">
                                                 <Mail className="w-4 h-4 text-muted-foreground" />
                                                 <span className="font-medium">{profile?.email}</span>
+                                            </div>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="text-sm text-muted-foreground">Universitas</label>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                                                <UniversityDisplay
+                                                    universityId={profile?.university_id}
+                                                    universityName={universityName}
+                                                />
                                             </div>
                                         </div>
                                         <div>

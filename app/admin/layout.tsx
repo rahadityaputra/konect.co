@@ -18,9 +18,7 @@ export default async function AdminLayout({
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  if (profile?.role !== "admin") {
+  if (user.app_metadata?.role !== "admin") {
     redirect("/dashboard")
   }
 
@@ -28,7 +26,7 @@ export default async function AdminLayout({
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} profile={profile} />
+        {/* <Header user={user} profile={profile} /> */}
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>

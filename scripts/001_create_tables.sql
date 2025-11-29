@@ -139,11 +139,16 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
+  INSERT INTO public.profiles (id, email, full_name, university_id)
   VALUES (
     new.id,
     new.email,
-    COALESCE(new.raw_user_meta_data ->> 'full_name', '')
+    COALESCE(new.raw_user_meta_data ->> 'full_name', ''),
+    CASE 
+      WHEN new.raw_user_meta_data ->> 'university_id' IS NOT NULL 
+      THEN (new.raw_user_meta_data ->> 'university_id')::UUID
+      ELSE NULL
+    END
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN new;

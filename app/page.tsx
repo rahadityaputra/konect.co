@@ -10,7 +10,13 @@ export default async function LandingPage() {
   } = await supabase.auth.getUser()
 
   if (user) {
-    redirect("/dashboard")
+    const role = user.app_metadata?.role
+    
+    if (role === 'admin') {
+      redirect("/admin/dashboard")
+    } else {
+      redirect("/dashboard")
+    }
   }
 
   return (

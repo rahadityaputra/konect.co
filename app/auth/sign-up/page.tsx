@@ -9,16 +9,95 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+
+interface University {
+  id: string
+  nama: string
+}
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [repeatPassword, setRepeatPassword] = useState("")
   const [fullName, setFullName] = useState("")
+  const [university, setUniversity] = useState("")
+  const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null)
+  const [universities, setUniversities] = useState<University[]>([])
+  const [showUniversities, setShowUniversities] = useState(false)
+  const [isLoadingUniversities, setIsLoadingUniversities] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const universityInputRef = useRef<HTMLInputElement>(null)
+  const universitiesListRef = useRef<HTMLDivElement>(null)
+
+  // Debounce hook for university search
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (university.trim() && !selectedUniversity) {
+        await searchUniversities(university.trim())
+      } else if (!university.trim()) {
+        setUniversities([])
+        setShowUniversities(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [university, selectedUniversity])
+
+  // Handle clicks outside university dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        universityInputRef.current &&
+        universitiesListRef.current &&
+        !universityInputRef.current.contains(event.target as Node) &&
+        !universitiesListRef.current.contains(event.target as Node)
+      ) {
+        setShowUniversities(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const searchUniversities = async (keyword: string) => {
+    if (keyword.length < 2) return
+
+    setIsLoadingUniversities(true)
+    try {
+      const response = await fetch(`http://localhost:5000/api/v1/universities/search?q=${encodeURIComponent(keyword)}`)
+      if (response.ok) {
+        const data = await response.json()
+        const universities = data.data.data;
+        console.log(data.data.data);
+        setUniversities(universities);
+        setShowUniversities(true)
+      }
+    } catch (error) {
+      console.error('Error fetching universities:', error)
+    } finally {
+      setIsLoadingUniversities(false)
+    }
+  }
+
+  const handleUniversitySelect = (selectedUni: University) => {
+    setSelectedUniversity(selectedUni)
+    setUniversity(selectedUni.nama)
+    setShowUniversities(false)
+  }
+
+  const handleUniversityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setUniversity(value)
+    if (selectedUniversity && value !== selectedUniversity.nama) {
+      setSelectedUniversity(null)
+    }
+  }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,9 +111,15 @@ export default function SignUpPage() {
       return
     }
 
+    if (!selectedUniversity) {
+      setError("Silakan pilih universitas dari daftar yang tersedia")
+      setIsLoading(false)
+      return
+    }
+
     try {
       console.log("mencoba untuk mendaftar pengguna baru");
-      
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -42,6 +127,7 @@ export default function SignUpPage() {
           emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
           data: {
             full_name: fullName,
+            university_id: selectedUniversity.id,
           },
         },
       })
@@ -88,6 +174,41 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+              </div>
+              <div className="grid gap-2 relative">
+                <Label htmlFor="university">Universitas</Label>
+                <Input
+                  ref={universityInputRef}
+                  id="university"
+                  placeholder="Ketik nama universitas..."
+                  required
+                  value={university}
+                  onChange={handleUniversityInputChange}
+                  onFocus={() => university && setShowUniversities(true)}
+                  autoComplete="off"
+                />
+                {showUniversities && (
+                  <div
+                    ref={universitiesListRef}
+                    className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-y-auto z-10"
+                  >
+                    {isLoadingUniversities ? (
+                      <div className="p-3 text-sm text-gray-500">Mencari universitas...</div>
+                    ) : universities.length > 0 ? (
+                      universities.map((uni) => (
+                        <div
+                          key={uni.id}
+                          className="p-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                          onClick={() => handleUniversitySelect(uni)}
+                        >
+                          {uni.nama}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-sm text-gray-500">Tidak ada universitas ditemukan</div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
