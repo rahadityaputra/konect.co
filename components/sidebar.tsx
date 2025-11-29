@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Trophy, FileText, Settings, LogOut, BarChart3, User, Building, Search, Briefcase } from "lucide-react"
+import { LayoutDashboard, Users, Trophy, FileText, Settings, LogOut, BarChart3, User, Building, Search, Briefcase, Bell } from "lucide-react"
 import { createClient } from "@/lib/client"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -61,6 +61,11 @@ const userMenuItems = [
     label: "Cari Tim",
     href: "/dashboard/team-finder",
     icon: Search,
+  },
+  {
+    label: "Notifikasi",
+    href: "/dashboard/notifications",
+    icon: Bell,
   },
   {
     label: "Profil",
